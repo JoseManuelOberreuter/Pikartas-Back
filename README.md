@@ -1,4 +1,4 @@
-# 🛒 Sistema de Carrito de Compras - API REST
+# 🛒 Pikartas - API REST
 
 Un sistema completo de carrito de compras con gestión de usuarios, productos, carritos y órdenes. Enfocado exclusivamente en e-commerce con autenticación JWT, roles de usuario, gestión de stock y panel de administración.
 
@@ -25,7 +25,7 @@ Un sistema completo de carrito de compras con gestión de usuarios, productos, c
 1. **Clonar el repositorio**
 ```bash
 git clone <url-del-repositorio>
-cd CarritoCompras
+cd Pikartas-back
 ```
 
 2. **Instalar dependencias**
@@ -159,7 +159,7 @@ Authorization: Bearer <tu_jwt_token>
 ## 📁 Estructura del Proyecto
 
 ```
-CarritoCompras/
+Pikartas-back/
 ├── controllers/          # Lógica de negocio
 │   ├── userController.js
 │   ├── productController.js
@@ -248,7 +248,7 @@ curl -X POST http://localhost:4005/api/orders \
 
 1. **Configurar el proyecto en Vercel**
    - Conecta tu repositorio de GitHub con Vercel
-   - Selecciona el directorio `ShopNodeCore` como raíz del proyecto
+   - Selecciona el directorio `Pikartas-back` como raíz del proyecto
    - Vercel detectará automáticamente el archivo `vercel.json`
 
 2. **Configurar Variables de Entorno en Vercel**
@@ -280,7 +280,7 @@ curl -X POST http://localhost:4005/api/orders \
    - Selecciona "Redeploy"
 
 4. **Verificar el despliegue**
-   - Visita tu URL de Vercel (ej: `https://shop-node-core.vercel.app`)
+   - Visita tu URL de Vercel (ej: `https://pikartas-back.vercel.app`)
    - Deberías ver un JSON con información de la API
    - Si ves un error 500, revisa los logs en Vercel → Deployments → Ver logs
 
@@ -344,4 +344,4 @@ Este proyecto está bajo la Licencia ISC.
 
 ---
 
-¡Gracias por usar nuestro Sistema de Carrito de Compras! 🛒✨
+¡Gracias por usar Pikartas! 🛒✨

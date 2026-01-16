@@ -16,7 +16,7 @@ const app = express();
 // Trust proxy for Vercel (required for X-Forwarded-For headers)
 app.set('trust proxy', 1);
 
-// Rutas del sistema de carrito de compras
+// Rutas del sistema Pikartas
 import userRoutes from './routes/userRouter.js';
 import productRoutes from './routes/productRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
@@ -87,8 +87,8 @@ const allowedOrigins = isDevelopment
       // Always allow explicit frontend URL
       ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
       // Allow common Vercel frontend URLs
-      'https://shop-vue-core.vercel.app',
-      'https://shop-vue-core-git-*.vercel.app',
+      'https://pikartas-front.vercel.app',
+      'https://pikartas-front-git-*.vercel.app',
       // Allow custom origins from environment
       ...(process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()).filter(Boolean) || []),
       // Allow Vercel deployment URL if present (for backend)
@@ -162,9 +162,9 @@ app.use('/api/contact', contactRoutes);
 // Ruta principal
 app.get('/', (req, res) => {
   res.json({
-    message: '🛒 Sistema de Carrito de Compras - API REST',
+    message: '🛒 Pikartas - API REST',
     version: '2.0.0',
-    description: 'Sistema completo de e-commerce con gestión de usuarios, productos, carritos y órdenes',
+    description: 'Sistema completo de e-commerce de cartas Pokémon con gestión de usuarios, productos, carritos y órdenes',
     features: [
       '✅ Autenticación JWT con roles (user/admin)',
       '✅ Catálogo de productos con imágenes',

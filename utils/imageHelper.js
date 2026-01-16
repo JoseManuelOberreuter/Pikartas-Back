@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import logger from './logger.js';
 
-const BUCKET_NAME = 'shop-core-bucket';
+const BUCKET_NAME = 'pikartas-bucket';
 
 /**
  * Upload an image to Supabase Storage

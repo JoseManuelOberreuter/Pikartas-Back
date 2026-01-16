@@ -8,10 +8,10 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Sistema de Carrito de Compras - API REST',
+      title: 'Pikartas - API REST',
       version: '2.0.0',
       description: `
-        Sistema completo de carrito de compras con gestión de usuarios, productos, carritos, órdenes y pagos con Transbank.
+        Sistema completo de e-commerce de cartas Pokémon con gestión de usuarios, productos, carritos, órdenes y pagos con Transbank.
         
         Características principales:
         - 🔐 Autenticación JWT con roles de usuario y verificación obligatoria de correo
@@ -27,8 +27,8 @@ const options = {
         - Administrador: Todas las funciones de usuario + gestión de productos, órdenes y anulaciones
       `,
       contact: {
-        name: 'Sistema de Carrito de Compras',
-        email: 'admin@carritocompras.com'
+        name: 'Pikartas',
+        email: 'admin@pikartas.com'
       },
       license: {
         name: 'ISC',
@@ -41,7 +41,7 @@ const options = {
         description: 'Servidor de desarrollo',
       },
       {
-        url: 'https://api.carritocompras.com',
+        url: 'https://pikartas-back.vercel.app',
         description: 'Servidor de producción'
       }
     ],
@@ -500,7 +500,7 @@ const swaggerConfig = {
   serve: swaggerUi.serve,
   setup: swaggerUi.setup(specs, {
     customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Carrito de Compras API',
+    customSiteTitle: 'Pikartas API',
     swaggerOptions: {
       persistAuthorization: true,
       displayRequestDuration: true,

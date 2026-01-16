@@ -10,14 +10,14 @@ const transporter = nodemailer.createTransport({
 
 // Centralized branding configuration for all outgoing emails
 const brandConfig = {
-  name: process.env.BRAND_NAME || 'ShopNodeCore',
-  logoUrl: process.env.BRAND_LOGO_URL || 'https://via.placeholder.com/140x40?text=ShopCore',
+  name: process.env.BRAND_NAME || 'Pikartas',
+  logoUrl: process.env.BRAND_LOGO_URL || 'https://via.placeholder.com/140x40?text=Pikartas',
   supportEmail: process.env.BRAND_SUPPORT_EMAIL || process.env.EMAIL_USER || 'support@example.com',
-  primaryColor: process.env.BRAND_PRIMARY_COLOR || '#27667B',
-  secondaryColor: process.env.BRAND_SECONDARY_COLOR || '#A0C878',
-  accentColor: process.env.BRAND_ACCENT_COLOR || '#DDEB9D',
-  textColor: process.env.BRAND_TEXT_COLOR || '#143D60',
-  footerText: process.env.BRAND_FOOTER_TEXT || '© 2024 ShopNodeCore - Tu tienda online de confianza'
+  primaryColor: process.env.BRAND_PRIMARY_COLOR || '#FDB31C', // Amarillo Pikartas
+  secondaryColor: process.env.BRAND_SECONDARY_COLOR || '#FF0000', // Rojo Pikartas
+  accentColor: process.env.BRAND_ACCENT_COLOR || '#FFD54F', // Amarillo claro Pikartas
+  textColor: process.env.BRAND_TEXT_COLOR || '#010101', // Negro Pikartas
+  footerText: process.env.BRAND_FOOTER_TEXT || '© 2024 Pikartas - Tu tienda de cartas Pokémon de confianza'
 };
 
 const buildBrandedEmail = ({ title, subtitle, bodyHtml }) => `
