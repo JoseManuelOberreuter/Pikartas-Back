@@ -532,8 +532,8 @@ const getUserById = async (req, res) => {
       return errorResponse(res, idValidation.error, 400);
     }
 
-    // Find user by ID
-    const user = await userService.findById(idValidation.id);
+    // Find user by ID (including deleted users for admin)
+    const user = await userService.findByIdAny(idValidation.id);
     if (!user) {
       return notFoundResponse(res, 'Usuario');
     }

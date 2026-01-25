@@ -358,12 +358,41 @@ export const validateOrderId = (id) => {
 // ============================================
 
 /**
- * Valida el ID de un usuario
+ * Valida el ID de un usuario (acepta números enteros o UUIDs/strings)
  * @param {string|number} id - ID a validar
- * @returns {{isValid: boolean, userId: number|null, error: string|null}}
+ * @returns {{isValid: boolean, id: string|number|null, error: string|null}}
  */
 export const validateUserId = (id) => {
-  return validateId(id, 'ID de usuario');
+  if (!id) {
+    return { isValid: false, id: null, error: 'ID de usuario requerido' };
+  }
+  
+  // Convert to string for validation
+  const idStr = String(id).trim();
+  
+  if (idStr === '') {
+    return { isValid: false, id: null, error: 'ID de usuario inválido' };
+  }
+  
+  // Try to validate as integer first (for backward compatibility)
+  const idInt = parseInt(idStr);
+  if (!isNaN(idInt) && idInt > 0) {
+    return { isValid: true, id: idInt, error: null };
+  }
+  
+  // If not a valid integer, accept as string (for UUIDs and other string IDs)
+  // UUID format: 8-4-4-4-12 hexadecimal characters
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (uuidRegex.test(idStr)) {
+    return { isValid: true, id: idStr, error: null };
+  }
+  
+  // Accept any non-empty string (for other ID formats)
+  if (idStr.length > 0) {
+    return { isValid: true, id: idStr, error: null };
+  }
+  
+  return { isValid: false, id: null, error: 'ID de usuario inválido' };
 };
 
 /**
