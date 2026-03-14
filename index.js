@@ -1,26 +1,25 @@
 import dotenv from 'dotenv';
 dotenv.config(); // Cargar variables de entorno
 
-import connectDB from './database.js'; // Importa la conexión a la base de datos
-import app from './server.js'; // Importa la configuración del servidor
+import connectDB from './database.js';
+import app from './server.js';
 import logger from './utils/logger.js';
+import { runStartupHealthChecks, logStartupReport } from './utils/startupHealthCheck.js';
 
 const PORT = process.env.PORT || 4005; // Puerto del servidor
 
 const startMessage = `
-
-░██████╗██╗░░██╗░█████╗░██████╗░███╗░░██╗░█████╗░██████╗░███████╗░█████╗░░█████╗░██████╗░███████╗
-██╔════╝██║░░██║██╔══██╗██╔══██╗████╗░██║██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔══██╗██╔══██╗██╔════╝
-╚█████╗░███████║██║░░██║██████╔╝██╔██╗██║██║░░██║██║░░██║█████╗░░██║░░╚═╝██║░░██║██████╔╝█████╗░░
-░╚═══██╗██╔══██║██║░░██║██╔═══╝░██║╚████║██║░░██║██║░░██║██╔══╝░░██║░░██╗██║░░██║██╔══██╗██╔══╝░░
-██████╔╝██║░░██║╚█████╔╝██║░░░░░██║░╚███║╚█████╔╝██████╔╝███████╗╚█████╔╝╚█████╔╝██║░░██║███████╗
-╚═════╝░╚═╝░░╚═╝░╚════╝░╚═╝░░░░░╚═╝░░╚══╝░╚════╝░╚═════╝░╚══════╝░╚════╝░░╚════╝░╚═╝░░╚═╝╚══════╝
+🚀 Servidor Pikartas iniciado 🚀
+-------------------------------
 `;
 
 logger.info(startMessage);
 
-// Conectar a la base de datos antes de iniciar el servidor
-connectDB().then(() => {
+// Connect DB first, then run availability checks and log, then start server
+connectDB().then(async () => {
+  const report = await runStartupHealthChecks();
+  logStartupReport(report, true);
+
   app.listen(PORT, () => {
     logger.info(`🚀 Servidor corriendo en http://localhost:${PORT}`);
     logger.info(`📚 Documentación Swagger disponible en: http://localhost:${PORT}/api-docs`);

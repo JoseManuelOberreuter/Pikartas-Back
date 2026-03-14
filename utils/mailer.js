@@ -8,6 +8,22 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+/**
+ * Verify SMTP connection (for startup health check).
+ * @returns {Promise<{ ok: boolean, error?: string }>}
+ */
+export const verifyEmailConnection = async () => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    return { ok: false, error: 'EMAIL_USER or EMAIL_PASS not set' };
+  }
+  try {
+    await transporter.verify();
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err?.message || String(err) };
+  }
+};
+
 // Centralized branding configuration for all outgoing emails
 const getLogoUrl = () => {
   if (process.env.BRAND_LOGO_URL) {
