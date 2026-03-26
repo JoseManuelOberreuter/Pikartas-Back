@@ -37,6 +37,17 @@ const mockValidators = {
 
 jest.unstable_mockModule('../utils/validators.js', () => mockValidators);
 
+jest.unstable_mockModule('../utils/stockHelper.js', () => ({
+  validateStockForCart: jest.fn().mockResolvedValue({ isValid: true }),
+  reserveStockForOrder: jest.fn().mockResolvedValue(undefined),
+  releaseStockForOrder: jest.fn()
+}));
+
+jest.unstable_mockModule('../utils/starkenService.js', () => ({
+  isStarkenConfigured: jest.fn(() => true),
+  quoteDomicilio: jest.fn().mockResolvedValue({ shippingCost: 2500 })
+}));
+
 const mockAuthHelper = {
   requireAuth: jest.fn(),
   requireOwnershipOrAdmin: jest.fn(),
@@ -80,7 +91,9 @@ describe('orderController', () => {
       user: { id: 1 },
       body: {
         shippingAddress: { street: 'A', city: 'B', state: 'C', zipCode: '1', country: 'CL' },
-        notes: 'Test'
+        notes: 'Test',
+        codigoCiudadDestino: 98,
+        clientShippingAmount: 0
       }
     };
     const res = createResponseMock();
@@ -96,10 +109,14 @@ describe('orderController', () => {
 
     await createOrder(req, res);
 
+    // subtotal 2000, tax 8% = 160, envío gratis (>=500) => shipping 0, total 2160
     expect(mockOrderService.create).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 1,
-        totalAmount: 2000,
+        totalAmount: 2160,
+        taxAmount: 160,
+        shippingAmount: 0,
+        starkenCodigoCiudadDestino: 98,
         shippingAddress: req.body.shippingAddress,
         paymentMethod: 'webpay'
       })

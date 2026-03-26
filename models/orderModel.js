@@ -16,24 +16,36 @@ export const orderService = {
       const client = ensureAdminClient();
       const orderNumber = this.generateOrderNumber();
       
+      const row = {
+        user_id: orderData.userId,
+        order_number: orderNumber,
+        total_amount: orderData.totalAmount,
+        status: orderData.status || 'pending',
+        shipping_street: orderData.shippingAddress?.street,
+        shipping_city: orderData.shippingAddress?.city,
+        shipping_state: orderData.shippingAddress?.state,
+        shipping_zip_code: orderData.shippingAddress?.zipCode,
+        shipping_country: orderData.shippingAddress?.country,
+        payment_method: orderData.paymentMethod || 'webpay',
+        payment_status: orderData.paymentStatus || 'pending',
+        transbank_token: orderData.transbankToken || null,
+        transbank_status: orderData.transbankStatus || null,
+        notes: orderData.notes
+      };
+
+      if (orderData.taxAmount !== undefined && orderData.taxAmount !== null) {
+        row.tax_amount = orderData.taxAmount;
+      }
+      if (orderData.shippingAmount !== undefined && orderData.shippingAmount !== null) {
+        row.shipping_amount = orderData.shippingAmount;
+      }
+      if (orderData.starkenCodigoCiudadDestino !== undefined && orderData.starkenCodigoCiudadDestino !== null) {
+        row.starken_codigo_ciudad_destino = orderData.starkenCodigoCiudadDestino;
+      }
+
       const { data, error } = await client
         .from('orders')
-        .insert([{
-          user_id: orderData.userId,
-          order_number: orderNumber,
-          total_amount: orderData.totalAmount,
-          status: orderData.status || 'pending',
-          shipping_street: orderData.shippingAddress?.street,
-          shipping_city: orderData.shippingAddress?.city,
-          shipping_state: orderData.shippingAddress?.state,
-          shipping_zip_code: orderData.shippingAddress?.zipCode,
-          shipping_country: orderData.shippingAddress?.country,
-          payment_method: orderData.paymentMethod || 'webpay',
-          payment_status: orderData.paymentStatus || 'pending',
-          transbank_token: orderData.transbankToken || null,
-          transbank_status: orderData.transbankStatus || null,
-          notes: orderData.notes
-        }])
+        .insert([row])
         .select()
         .single();
 

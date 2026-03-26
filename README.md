@@ -58,6 +58,11 @@ TRANSBANK_API_KEY=tu_api_key
 TRANSBANK_ENVIRONMENT=integration
 TRANSBANK_COMMERCE_CODE=tu_commerce_code
 
+# Starken — cotización de envío (obligatorio para checkout/pago)
+# Credenciales QA en developers.starken.cl; producción las entrega el ejecutivo comercial.
+# Ver comentarios en .env.example (STARKEN_REST_BASE_URL, STARKEN_AUTH_*, STARKEN_CODIGO_CIUDAD_ORIGEN, etc.).
+# Tras crear el proyecto Supabase, ejecuta también database/migrations/001_orders_shipping_tax.sql si faltan columnas en orders.
+
 # Email (opcional)
 EMAIL_USER=tu_email@gmail.com
 EMAIL_PASS=tu_password_de_aplicacion

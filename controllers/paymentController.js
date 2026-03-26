@@ -5,6 +5,7 @@ import { supabase, supabaseAdmin } from '../database.js';
 import logger from '../utils/logger.js';
 import { requireAuth } from '../utils/authHelper.js';
 import { successResponse, errorResponse, notFoundResponse, serverErrorResponse } from '../utils/responseHelper.js';
+import { isStarkenConfigured } from '../utils/starkenService.js';
 import { sendPaymentConfirmationEmail, sendPaymentFailedEmail, sendPaymentNotificationToAdmin } from '../utils/mailer.js';
 import { releaseStockForOrder } from '../utils/stockHelper.js';
 
@@ -13,15 +14,39 @@ export const initiatePayment = async (req, res) => {
   try {
     if (!requireAuth(req, res)) return;
 
-    const { shippingAddress } = req.body;
-    
+    const {
+      shippingAddress,
+      notes,
+      codigoCiudadDestino,
+      clientShippingAmount,
+      kilos,
+      alto,
+      ancho,
+      largo
+    } = req.body;
+
     logger.info('Initiating payment process:', {
       userId: req.user.id,
       hasShippingAddress: !!shippingAddress
     });
 
+    if (!isStarkenConfigured()) {
+      return errorResponse(
+        res,
+        'Cotización de envío no disponible en el servidor. Configura las variables Starken.',
+        503
+      );
+    }
+
     // Create order using shared function
-    const order = await createOrderFromCart(req.user.id, shippingAddress);
+    const order = await createOrderFromCart(req.user.id, shippingAddress, notes || null, {
+      codigoCiudadDestino,
+      clientShippingAmount,
+      kilos,
+      alto,
+      ancho,
+      largo
+    });
 
     logger.info('Order created for payment:', {
       orderId: order.id,
@@ -92,6 +117,15 @@ export const initiatePayment = async (req, res) => {
     
     if (error.message.includes('carrito está vacío')) {
       errorMessage = error.message;
+    } else if (
+      error.message.includes('ciudad de destino') ||
+      error.message.includes('costo de envío cambió') ||
+      error.message.includes('costo de envío')
+    ) {
+      errorMessage = error.message;
+      return errorResponse(res, errorMessage, 400);
+    } else if (error.message.includes('cotización de envío') || error.message.includes('Starken')) {
+      return errorResponse(res, error.message, 503);
     } else if (error.message.includes('FRONTEND_URL')) {
       errorMessage = 'Error de configuración del servidor. Por favor, contacta al soporte.';
     } else if (error.message.includes('orderId') || error.message.includes('sessionId') || error.message.includes('amount')) {

@@ -89,6 +89,12 @@ export const formatOrder = (order, includeItems = true) => {
     orderNumber: order.order_number,
     userId: order.user_id,
     totalAmount: order.total_amount,
+    ...(order.tax_amount !== undefined && order.tax_amount !== null && { taxAmount: order.tax_amount }),
+    ...(order.shipping_amount !== undefined && order.shipping_amount !== null && { shippingAmount: order.shipping_amount }),
+    ...(order.starken_codigo_ciudad_destino !== undefined &&
+      order.starken_codigo_ciudad_destino !== null && {
+        starkenCodigoCiudadDestino: order.starken_codigo_ciudad_destino
+      }),
     status: order.status,
     paymentStatus: order.payment_status,
     paymentMethod: order.payment_method,

@@ -41,6 +41,16 @@ const mockAuthHelper = {
 
 jest.unstable_mockModule('../utils/authHelper.js', () => mockAuthHelper);
 
+const mockCreateOrderFromCart = jest.fn();
+
+jest.unstable_mockModule('../controllers/orderController.js', () => ({
+  createOrderFromCart: (...args) => mockCreateOrderFromCart(...args)
+}));
+
+jest.unstable_mockModule('../utils/starkenService.js', () => ({
+  isStarkenConfigured: jest.fn(() => true)
+}));
+
 let initiatePayment;
 let refundPayment;
 beforeAll(async () => {
@@ -62,6 +72,7 @@ describe('paymentController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAuthHelper.requireAuth.mockReturnValue(true);
+    mockCreateOrderFromCart.mockReset();
   });
 
   afterEach(() => {
@@ -73,18 +84,16 @@ describe('paymentController', () => {
     const req = {
       user: { id: 99 },
       body: {
-        shippingAddress: { street: 'x', city: 'y', state: 'z', zipCode: '1', country: 'CL' }
+        shippingAddress: { street: 'x', city: 'y', state: 'z', zipCode: '1', country: 'CL' },
+        codigoCiudadDestino: 98,
+        clientShippingAmount: 0
       }
     };
     const res = createResponseMock();
 
     mockValidators.validateShippingAddress.mockReturnValue({ isValid: true });
-    mockCartService.findByUserId.mockResolvedValue({
-      id: 7,
-      cart_items: [{ product_id: 1, price: 5000, quantity: 1 }]
-    });
-    const newOrder = { id: 55, order_number: 'ORD-55' };
-    mockOrderService.create.mockResolvedValue(newOrder);
+    const newOrder = { id: 55, order_number: 'ORD-55', total_amount: 5400 };
+    mockCreateOrderFromCart.mockResolvedValue(newOrder);
     mockTransbankService.createTransaction.mockResolvedValue({
       url: 'https://tbk.example.com/pay',
       token: 'TBK123'
@@ -92,11 +101,8 @@ describe('paymentController', () => {
 
     await initiatePayment(req, res);
 
-    expect(mockOrderService.createOrderItems).toHaveBeenCalledWith(55, [
-      { productId: 1, productName: '', quantity: 1, price: 5000 }
-    ]);
+    expect(mockCreateOrderFromCart).toHaveBeenCalled();
     expect(mockOrderService.updateTransbankToken).toHaveBeenCalledWith(55, 'TBK123');
-    expect(mockCartService.clearCart).toHaveBeenCalledWith(7);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -113,14 +119,18 @@ describe('paymentController', () => {
     delete process.env.FRONTEND_URL;
     const req = {
       user: { id: 1 },
-      body: { shippingAddress: {} }
+      body: {
+        shippingAddress: { street: 'x', city: 'y', state: 'z', zipCode: '1', country: 'CL' },
+        codigoCiudadDestino: 98,
+        clientShippingAmount: 0
+      }
     };
     const res = createResponseMock();
 
-    mockValidators.validateShippingAddress.mockReturnValue({ isValid: true });
-    mockCartService.findByUserId.mockResolvedValue({
-      id: 2,
-      cart_items: [{ product_id: 1, price: 1000, quantity: 1 }]
+    mockCreateOrderFromCart.mockResolvedValue({
+      id: 1,
+      order_number: 'ORD-X',
+      total_amount: 1000
     });
 
     await initiatePayment(req, res);
@@ -132,7 +142,7 @@ describe('paymentController', () => {
         error: 'Error de configuración: FRONTEND_URL no está configurado'
       })
     );
-    expect(mockOrderService.create).toHaveBeenCalledTimes(1);
+    expect(mockCreateOrderFromCart).toHaveBeenCalledTimes(1);
     expect(mockTransbankService.createTransaction).not.toHaveBeenCalled();
   });
 

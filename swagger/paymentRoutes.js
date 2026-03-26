@@ -36,9 +36,28 @@
  *       type: object
  *       required:
  *         - shippingAddress
+ *         - codigoCiudadDestino
  *       properties:
  *         shippingAddress:
  *           $ref: '#/components/schemas/ShippingAddress'
+ *         notes:
+ *           type: string
+ *           description: Notas del pedido (opcional)
+ *         codigoCiudadDestino:
+ *           type: integer
+ *           description: Código ciudad destino Starken (debe coincidir con la cotización en checkout)
+ *           example: 98
+ *         clientShippingAmount:
+ *           type: number
+ *           description: Monto de envío mostrado al usuario tras regla de envío gratis (validación servidor)
+ *         kilos:
+ *           type: number
+ *         alto:
+ *           type: number
+ *         ancho:
+ *           type: number
+ *         largo:
+ *           type: number
  *
  *     InitiatePaymentResponse:
  *       type: object

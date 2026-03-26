@@ -67,6 +67,10 @@ const options = {
         description: 'Procesamiento de pagos con Transbank Webpay Plus'
       },
       {
+        name: 'Shipping',
+        description: 'Cotización de envío Starken (destinos y tarifas)'
+      },
+      {
         name: 'Admin',
         description: 'Funciones administrativas (solo administradores)'
       },

@@ -12,9 +12,22 @@ import { validateShippingAddress, validateOrderStatus, validateOrderId } from '.
 import { calculateOrderStats, calculateDateRange } from '../utils/statsHelper.js';
 import { reserveStockForOrder, validateStockForCart, releaseStockForOrder } from '../utils/stockHelper.js';
 import { sendPaymentFailedEmail, sendOrderProcessingEmail, sendOrderShippedEmail, sendOrderDeliveredEmail } from '../utils/mailer.js';
+import { isStarkenConfigured, quoteDomicilio } from '../utils/starkenService.js';
+import {
+  computeCheckoutTotals,
+  shippingMatchesClient
+} from '../utils/shippingPricing.js';
 
-// Helper function to create an order (shared logic)
-export const createOrderFromCart = async (userId, shippingAddress, notes = null) => {
+/**
+ * @param {object} [pricing]
+ * @param {number} [pricing.codigoCiudadDestino] - requerido si Starken está configurado
+ * @param {number} [pricing.clientShippingAmount] - envío mostrado al usuario (tras regla gratis)
+ * @param {number} [pricing.kilos]
+ * @param {number} [pricing.alto]
+ * @param {number} [pricing.ancho]
+ * @param {number} [pricing.largo]
+ */
+export const createOrderFromCart = async (userId, shippingAddress, notes = null, pricing = {}) => {
   // Validate shipping address
   const addressValidation = validateShippingAddress(shippingAddress);
   if (!addressValidation.isValid) {
@@ -33,10 +46,44 @@ export const createOrderFromCart = async (userId, shippingAddress, notes = null)
     throw new Error(stockValidation.error);
   }
 
-  // Calculate total
-  const totalAmount = cart.cart_items.reduce((acc, item) => 
-    acc + (item.price * item.quantity), 0
+  const subtotal = cart.cart_items.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
   );
+
+  let totalAmount = subtotal;
+  let taxAmount = null;
+  let shippingAmount = null;
+  let starkenCodigoCiudadDestino = null;
+
+  if (isStarkenConfigured()) {
+    const dest = pricing.codigoCiudadDestino;
+    if (dest === undefined || dest === null || Number.isNaN(parseInt(dest, 10))) {
+      throw new Error('Selecciona una ciudad de destino para calcular el envío.');
+    }
+    starkenCodigoCiudadDestino = parseInt(dest, 10);
+    const overrides = {};
+    if (pricing.kilos !== undefined && pricing.kilos !== '') overrides.kilos = parseFloat(pricing.kilos);
+    if (pricing.alto !== undefined && pricing.alto !== '') overrides.alto = parseFloat(pricing.alto);
+    if (pricing.ancho !== undefined && pricing.ancho !== '') overrides.ancho = parseFloat(pricing.ancho);
+    if (pricing.largo !== undefined && pricing.largo !== '') overrides.largo = parseFloat(pricing.largo);
+
+    const quote = await quoteDomicilio(starkenCodigoCiudadDestino, overrides);
+    const totals = computeCheckoutTotals(subtotal, quote.shippingCost);
+    taxAmount = totals.taxAmount;
+    shippingAmount = totals.shippingAmount;
+    totalAmount = totals.totalAmount;
+
+    if (!shippingMatchesClient(pricing.clientShippingAmount, shippingAmount)) {
+      throw new Error(
+        'El costo de envío cambió respecto a la cotización. Actualiza el checkout e intenta de nuevo.'
+      );
+    }
+  } else {
+    throw new Error(
+      'El servidor no tiene configurada la cotización de envío (Starken). Contacta al administrador.'
+    );
+  }
 
   let order = null;
   try {
@@ -44,6 +91,9 @@ export const createOrderFromCart = async (userId, shippingAddress, notes = null)
     order = await orderService.create({
       userId,
       totalAmount,
+      taxAmount,
+      shippingAmount,
+      starkenCodigoCiudadDestino,
       shippingAddress,
       paymentMethod: 'webpay',
       paymentStatus: 'pending',
@@ -89,15 +139,35 @@ export const createOrder = async (req, res) => {
   try {
     if (!requireAuth(req, res)) return;
 
-    const { shippingAddress, notes } = req.body;
-    
-    const order = await createOrderFromCart(req.user.id, shippingAddress, notes);
+    const { shippingAddress, notes, codigoCiudadDestino, clientShippingAmount, kilos, alto, ancho, largo } = req.body;
+
+    const order = await createOrderFromCart(req.user.id, shippingAddress, notes, {
+      codigoCiudadDestino,
+      clientShippingAmount,
+      kilos,
+      alto,
+      ancho,
+      largo
+    });
 
     const formattedOrder = formatOrder(order, false);
     return successResponse(res, formattedOrder, 'Orden creada exitosamente', 201);
 
   } catch (error) {
     logger.error('Error creating order:', { message: error.message });
+    const msg = error.message || '';
+    if (
+      msg.includes('carrito está vacío') ||
+      msg.includes('Selecciona una ciudad') ||
+      msg.includes('costo de envío cambió') ||
+      msg.includes('Dirección de envío') ||
+      msg.includes('Stock insuficiente')
+    ) {
+      return errorResponse(res, msg, 400);
+    }
+    if (msg.includes('cotización de envío') || msg.includes('Starken')) {
+      return errorResponse(res, msg, 503);
+    }
     return serverErrorResponse(res, error, error.message || 'Error al crear la orden');
   }
 };

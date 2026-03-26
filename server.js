@@ -23,6 +23,7 @@ import cartRoutes from './routes/cartRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
+import shippingRoutes from './routes/shippingRoutes.js';
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
@@ -157,6 +158,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/shipping', shippingRoutes);
 
 
 // Ruta principal
