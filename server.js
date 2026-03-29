@@ -81,17 +81,24 @@ const authLimiter = rateLimit({
 // Apply general rate limiting to all routes
 app.use(generalLimiter);
 
+// Normalize origin for CORS (browsers send Origin without trailing slash)
+const normalizeOrigin = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  const t = url.trim();
+  return t.endsWith('/') ? t.slice(0, -1) : t;
+};
+
 // Security: CORS configuration
 const allowedOrigins = isDevelopment
   ? ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174']
   : [
       // Always allow explicit frontend URL
-      ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+      ...(process.env.FRONTEND_URL ? [normalizeOrigin(process.env.FRONTEND_URL)] : []),
       // Allow common Vercel frontend URLs
       'https://pikartas-front.vercel.app',
       'https://pikartas-front-git-*.vercel.app',
       // Allow custom origins from environment
-      ...(process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()).filter(Boolean) || []),
+      ...(process.env.ALLOWED_ORIGINS?.split(',').map((o) => normalizeOrigin(o.trim())).filter(Boolean) || []),
       // Allow Vercel deployment URL if present (for backend)
       ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : [])
     ];
