@@ -41,7 +41,7 @@ const brandConfig = {
   supportEmail: process.env.BRAND_SUPPORT_EMAIL || process.env.EMAIL_USER || 'support@example.com',
   primaryColor: process.env.BRAND_PRIMARY_COLOR || '#FDB31C', // Amarillo Pikartas (acentos; no como texto principal sobre amarillo)
   secondaryColor: process.env.BRAND_SECONDARY_COLOR || '#010101', // Negro Pikartas
-  tertiaryColor: process.env.BRAND_TERTIARY_COLOR || '#FFFFFF', // Blanco (botones, contrastes)
+  tertiaryColor: process.env.BRAND_TERTIARY_COLOR || '#FFFFFF', // Blanco (superficies; no usar solo como botón sobre tarjeta blanca)
   quaternaryColor: process.env.BRAND_QUATERNARY_COLOR || '#FF0000', // Rojo Pikartas
   accentColor: process.env.BRAND_ACCENT_COLOR || '#FFD54F', // Amarillo claro Pikartas
   textColor: process.env.BRAND_TEXT_COLOR || '#010101', // Texto principal sobre fondos claros
@@ -50,6 +50,9 @@ const brandConfig = {
   cardBackgroundColor: process.env.BRAND_CARD_BACKGROUND_COLOR || '#FFFFFF',
   footerText: process.env.BRAND_FOOTER_TEXT || '© 2024 Pikartas - Tu tienda de cartas Pokémon de confianza'
 };
+
+/** CTA en correos: fondo primary sobre tarjeta clara + texto/borde oscuro (Gmail y similares) */
+const emailCtaButtonStyle = `display:inline-block;padding:16px 32px;background:${brandConfig.primaryColor};color:${brandConfig.secondaryColor};border:2px solid ${brandConfig.secondaryColor};border-radius:50px;text-decoration:none;font-weight:700;font-size:16px;min-width:180px;text-align:center;line-height:1.3;`;
 
 const buildBrandedEmail = ({ title, subtitle, bodyHtml }) => `
   <!DOCTYPE html>
@@ -103,7 +106,7 @@ const sendVerificationEmail = async (email, token) => {
     </p>
     <div style="text-align: center; margin: 30px 0;">
       <a href="${verificationLink}"
-         style="display:inline-block;padding:16px 32px;background:${brandConfig.tertiaryColor};color:${brandConfig.secondaryColor};border:2px solid ${brandConfig.tertiaryColor};border-radius:50px;text-decoration:none;font-weight:600;font-size:16px;min-width:180px;">
+         style="${emailCtaButtonStyle}">
         Confirmar mi Cuenta
       </a>
     </div>
@@ -152,7 +155,7 @@ const sendPasswordResetEmail = async (email, token) => {
     </p>
     <div style="text-align: center; margin: 30px 0;">
       <a href="${resetLink}" 
-         style="display:inline-block;padding:16px 32px;background:${brandConfig.tertiaryColor};color:${brandConfig.secondaryColor};border:2px solid ${brandConfig.tertiaryColor};border-radius:50px;text-decoration:none;font-weight:600;font-size:16px;min-width:180px;">
+         style="${emailCtaButtonStyle}">
         Restablecer Contraseña
       </a>
     </div>
@@ -357,7 +360,7 @@ const sendPaymentFailedEmail = async (email, orderNumber, orderId) => {
         Si tuviste problemas con el pago, contacta directamente con nosotros en nuestra página web en el menú de contacto.
       </p>
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${contactUrl}" style="display: inline-block; background: ${brandConfig.tertiaryColor}; color: ${brandConfig.secondaryColor}; padding: 16px 32px; text-decoration: none; border: 2px solid ${brandConfig.tertiaryColor}; border-radius: 50px; font-weight: 600; font-size: 16px; min-width: 180px;">
+        <a href="${contactUrl}" style="${emailCtaButtonStyle}">
           Ir a Contacto
         </a>
       </div>
@@ -533,7 +536,7 @@ const sendOrderDeliveredEmail = async (email, orderNumber, orderId, customerName
       ¡Esperamos verte nuevamente! Te invitamos a seguir comprando con nosotros y descubrir más productos increíbles.
     </p>
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${shopUrl}" style="display: inline-block; background: ${brandConfig.tertiaryColor}; color: ${brandConfig.secondaryColor}; padding: 16px 32px; text-decoration: none; border: 2px solid ${brandConfig.tertiaryColor}; border-radius: 50px; font-weight: 600; font-size: 16px; min-width: 180px;">
+      <a href="${shopUrl}" style="${emailCtaButtonStyle}">
         Ver Productos
       </a>
     </div>
