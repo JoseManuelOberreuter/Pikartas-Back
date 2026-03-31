@@ -111,6 +111,33 @@ describe('cartController', () => {
     expect(mockCartService.addItem).not.toHaveBeenCalled();
   });
 
+  it('returns 400 when product is out of stock', async () => {
+    const req = {
+      user: { id: 1 },
+      body: { productId: 'p1', quantity: 1 }
+    };
+    const res = createResponseMock();
+
+    const existingCart = { id: 11, cart_items: [] };
+    mockCartService.findByUserId.mockResolvedValue(existingCart);
+    mockValidators.validateCartItemData.mockReturnValue({ isValid: true });
+    mockValidators.validateProductForCart.mockResolvedValue({
+      isValid: false,
+      error: 'Producto agotado.'
+    });
+
+    await addToCart(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: 'Producto agotado.'
+      })
+    );
+    expect(mockCartService.addItem).not.toHaveBeenCalled();
+  });
+
   it('creates cart when not found on getCart', async () => {
     const req = { user: { id: 9 } };
     const res = createResponseMock();

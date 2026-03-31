@@ -133,9 +133,8 @@ export const createOrderFromCart = async (userId, shippingAddress, notes = null,
     if (order && order.id) {
       try {
         logger.warn(`Limpiando orden ${order.id} después de error en reserva de stock`);
-        // Note: We can't easily delete the order here without additional methods
-        // The order will remain but stock won't be reserved
-        // In production, you might want to add a cleanup job or manual process
+        await orderService.updateStatus(order.id, 'cancelled');
+        await orderService.updatePaymentStatus(order.id, 'failed');
       } catch (cleanupError) {
         logger.error(`Error limpiando orden ${order.id}:`, { message: cleanupError.message });
       }
@@ -171,7 +170,8 @@ export const createOrder = async (req, res) => {
       msg.includes('Selecciona una ciudad') ||
       msg.includes('costo de envío cambió') ||
       msg.includes('Dirección de envío') ||
-      msg.includes('Stock insuficiente')
+      msg.includes('Stock insuficiente') ||
+      msg.includes('agotado')
     ) {
       return errorResponse(res, msg, 400);
     }

@@ -3,6 +3,7 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 const mockProductService = {
   create: jest.fn(),
   findById: jest.fn(),
+  findByIdAny: jest.fn(),
   update: jest.fn()
 };
 
@@ -14,7 +15,9 @@ const mockValidators = {
   validateProductId: jest.fn(),
   validatePrice: jest.fn(),
   validateStock: jest.fn(),
-  validateProductRequiredFields: jest.fn()
+  validateProductRequiredFields: jest.fn(),
+  validateDiscountPercentage: jest.fn(),
+  validateSaleDates: jest.fn()
 };
 
 jest.unstable_mockModule('../utils/validators.js', () => mockValidators);
@@ -88,7 +91,7 @@ describe('productController', () => {
     const res = createResponseMock();
 
     mockValidators.validateProductRequiredFields.mockReturnValue({ isValid: true });
-    mockValidators.validatePrice.mockReturnValue({ isValid: true, price: 5000 });
+    mockValidators.validatePrice.mockReturnValue({ isValid: true, value: 5000 });
     mockValidators.validateStock.mockReturnValue({ isValid: true, stock: 3 });
 
     const productRecord = { id: 1, name: 'Producto' };
@@ -124,7 +127,7 @@ describe('productController', () => {
 
     mockValidators.validateProductId.mockReturnValue({ isValid: true, id: 10 });
     mockValidators.validateStock.mockReturnValue({ isValid: true, stock: 10 });
-    mockProductService.findById.mockResolvedValue({ id: 10, stock: 4 });
+    mockProductService.findByIdAny.mockResolvedValue({ id: 10, stock: 4 });
     const updatedProduct = { id: 10, stock: 0 };
     mockProductService.update.mockResolvedValue(updatedProduct);
     mockFormatProduct.mockReturnValue(updatedProduct);
@@ -143,6 +146,24 @@ describe('productController', () => {
         })
       })
     );
+  });
+
+  it('does not deactivate product when stock is updated to zero', async () => {
+    const req = {
+      params: { id: '11' },
+      body: { stock: 2, operation: 'subtract' }
+    };
+    const res = createResponseMock();
+
+    mockValidators.validateProductId.mockReturnValue({ isValid: true, id: 11 });
+    mockValidators.validateStock.mockReturnValue({ isValid: true, stock: 2 });
+    mockProductService.findByIdAny.mockResolvedValue({ id: 11, stock: 2, is_active: true });
+    mockProductService.update.mockResolvedValue({ id: 11, stock: 0, is_active: true });
+    mockFormatProduct.mockReturnValue({ id: 11, stock: 0, is_active: true });
+
+    await updateStock(req, res);
+
+    expect(mockProductService.update).toHaveBeenCalledWith(11, { stock: 0 });
   });
 });
 

@@ -353,10 +353,14 @@ export const validateProductForCart = async (productId, requestedQuantity, cart 
 
   // Validar que haya stock suficiente
   if (availableStock < quantityInt) {
+    const stockMessage = availableStock <= 0
+      ? 'Producto agotado.'
+      : `Stock insuficiente. Solo hay ${availableStock} unidades disponibles.`;
+
     return {
       isValid: false,
       product,
-      error: `Stock insuficiente. Solo hay ${availableStock} unidades disponibles${quantityInCart > 0 ? ` (ya tienes ${quantityInCart} en el carrito)` : ''}.`,
+      error: `${stockMessage}${quantityInCart > 0 ? ` (ya tienes ${quantityInCart} en el carrito)` : ''}`,
       availableStock
     };
   }

@@ -69,10 +69,12 @@ jest.unstable_mockModule('../utils/formatters.js', () => mockFormatters);
 
 let createOrder;
 let cancelOrder;
+let mockStockHelper;
 beforeAll(async () => {
   const controller = await import('../controllers/orderController.js');
   createOrder = controller.createOrder;
   cancelOrder = controller.cancelOrder;
+  mockStockHelper = await import('../utils/stockHelper.js');
 });
 
 const createResponseMock = () => {
@@ -159,6 +161,39 @@ describe('orderController', () => {
       })
     );
     expect(mockOrderService.create).not.toHaveBeenCalled();
+  });
+
+  it('cancels the order when stock reservation fails after creation', async () => {
+    const req = {
+      user: { id: 4 },
+      body: {
+        shippingAddress: { street: 'A', city: 'B', state: 'C', zipCode: '1', country: 'CL' },
+        notes: 'Test',
+        codigoCiudadDestino: 98,
+        clientShippingAmount: 2500
+      }
+    };
+    const res = createResponseMock();
+
+    mockValidators.validateShippingAddress.mockReturnValue({ isValid: true });
+    mockCartService.findByUserId.mockResolvedValue({
+      id: 9,
+      cart_items: [{ product_id: 12, price: 1000, quantity: 1 }]
+    });
+    mockOrderService.create.mockResolvedValue({ id: 22, order_number: 'ORD-22' });
+    mockStockHelper.reserveStockForOrder.mockRejectedValue(new Error('Producto agotado.'));
+
+    await createOrder(req, res);
+
+    expect(mockOrderService.updateStatus).toHaveBeenCalledWith(22, 'cancelled');
+    expect(mockOrderService.updatePaymentStatus).toHaveBeenCalledWith(22, 'failed');
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: 'Producto agotado.'
+      })
+    );
   });
 
   it('cancels paid order and triggers refund', async () => {

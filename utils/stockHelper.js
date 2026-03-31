@@ -41,10 +41,10 @@ export const reserveStockForOrder = async (orderId) => {
         // Validar que hay stock suficiente
         const currentStock = product.stock || 0;
         if (currentStock < item.quantity) {
-          throw new Error(
-            `Stock insuficiente para producto ${item.product_id}. ` +
-            `Stock disponible: ${currentStock}, Cantidad requerida: ${item.quantity}`
-          );
+          const stockMessage = currentStock <= 0
+            ? `Producto ${item.product_id} agotado.`
+            : `Stock insuficiente para producto ${item.product_id}. Stock disponible: ${currentStock}, Cantidad requerida: ${item.quantity}`;
+          throw new Error(stockMessage);
         }
 
         // Descontar stock (reservar)
@@ -169,10 +169,13 @@ export const validateStockForCart = async (cartItems) => {
 
       const availableStock = product.stock || 0;
       if (availableStock < item.quantity) {
+        const stockMessage = availableStock <= 0
+          ? `${product.name || `producto ${item.product_id}`} agotado.`
+          : `Stock insuficiente para ${product.name || `producto ${item.product_id}`}. Stock disponible: ${availableStock}, Cantidad solicitada: ${item.quantity}`;
+
         return {
           isValid: false,
-          error: `Stock insuficiente para ${product.name || `producto ${item.product_id}`}. ` +
-                 `Stock disponible: ${availableStock}, Cantidad solicitada: ${item.quantity}`
+          error: stockMessage
         };
       }
     }

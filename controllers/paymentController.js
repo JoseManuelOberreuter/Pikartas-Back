@@ -120,7 +120,9 @@ export const initiatePayment = async (req, res) => {
     } else if (
       error.message.includes('ciudad de destino') ||
       error.message.includes('costo de envío cambió') ||
-      error.message.includes('costo de envío')
+      error.message.includes('costo de envío') ||
+      error.message.includes('Stock insuficiente') ||
+      error.message.includes('agotado')
     ) {
       errorMessage = error.message;
       return errorResponse(res, errorMessage, 400);

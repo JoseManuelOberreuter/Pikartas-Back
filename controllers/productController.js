@@ -354,11 +354,6 @@ export const updateProduct = async (req, res) => {
         return errorResponse(res, stockValidation.error, 400);
       }
       updateData.stock = stockValidation.stock;
-      
-      // If stock reaches 0, deactivate product automatically
-      if (stockValidation.stock === 0) {
-        updateData.is_active = false;
-      }
     }
 
     // Process new image if uploaded
