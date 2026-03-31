@@ -93,7 +93,7 @@ describe('orderController', () => {
         shippingAddress: { street: 'A', city: 'B', state: 'C', zipCode: '1', country: 'CL' },
         notes: 'Test',
         codigoCiudadDestino: 98,
-        clientShippingAmount: 0
+        clientShippingAmount: 2500
       }
     };
     const res = createResponseMock();
@@ -109,13 +109,13 @@ describe('orderController', () => {
 
     await createOrder(req, res);
 
-    // subtotal 2000, tax 8% = 160, envío gratis (>=500) => shipping 0, total 2160
+    // subtotal 2000, sin impuesto adicional, envío mock 2500 => total 4500
     expect(mockOrderService.create).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 1,
-        totalAmount: 2160,
-        taxAmount: 160,
-        shippingAmount: 0,
+        totalAmount: 4500,
+        taxAmount: 0,
+        shippingAmount: 2500,
         starkenCodigoCiudadDestino: 98,
         shippingAddress: req.body.shippingAddress,
         paymentMethod: 'webpay'

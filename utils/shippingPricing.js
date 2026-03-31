@@ -1,11 +1,6 @@
 /**
- * Totales de checkout: impuesto y envío cotizado.
+ * Totales de checkout: envío cotizado (sin impuesto adicional; precios con IVA incluido).
  */
-
-export function getTaxRate() {
-  const r = parseFloat(process.env.SHOP_TAX_RATE ?? '0.08');
-  return Number.isFinite(r) && r >= 0 ? r : 0.08;
-}
 
 export function getQuoteTolerancePesos() {
   const v = parseInt(process.env.STARKEN_QUOTE_TOLERANCE_PESOS ?? '50', 10);
@@ -22,8 +17,7 @@ export function roundMoney(n) {
  * @returns {{ taxAmount: number, shippingAmount: number, totalAmount: number }}
  */
 export function computeCheckoutTotals(subtotal, quotedShipping) {
-  const taxRate = getTaxRate();
-  const taxAmount = roundMoney(subtotal * taxRate);
+  const taxAmount = 0;
   const shippingAmount = roundMoney(quotedShipping);
   const totalAmount = roundMoney(subtotal + taxAmount + shippingAmount);
   return { taxAmount, shippingAmount, totalAmount };
