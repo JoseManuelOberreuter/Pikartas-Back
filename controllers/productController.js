@@ -344,7 +344,7 @@ export const updateProduct = async (req, res) => {
       if (!priceValidation.isValid) {
         return errorResponse(res, priceValidation.error, 400);
       }
-      updateData.price = priceValidation.price;
+      updateData.price = priceValidation.value;
     }
 
     // Validate and update stock (skip if undefined, empty, or string "undefined")
@@ -575,6 +575,9 @@ export const updateStock = async (req, res) => {
 // Get all products for admin (includes inactive)
 export const getAllProductsAdmin = async (req, res) => {
   try {
+    // Listados mutables: no cachear en CDN/proxy/navegador (evita tabla desactualizada tras editar).
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+
     const { page, limit, category, search, isActive, sortBy, sortOrder } = req.query;
 
     const result = await buildProductQuery({

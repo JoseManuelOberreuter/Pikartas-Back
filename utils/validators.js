@@ -140,7 +140,7 @@ export const validateProductId = (id) => {
 /**
  * Valida el precio de un producto
  * @param {string|number} price - Precio a validar
- * @returns {{isValid: boolean, price: number|null, error: string|null}}
+ * @returns {{isValid: boolean, value: number|null, error: string|null}} (misma forma que validatePositiveNumber)
  */
 export const validatePrice = (price) => {
   return validatePositiveNumber(price, 'Precio', true);
