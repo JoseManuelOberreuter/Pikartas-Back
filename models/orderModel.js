@@ -30,6 +30,9 @@ export const orderService = {
         payment_status: orderData.paymentStatus || 'pending',
         transbank_token: orderData.transbankToken || null,
         transbank_status: orderData.transbankStatus || null,
+        mp_preference_id: orderData.mpPreferenceId || null,
+        mp_payment_id: orderData.mpPaymentId || null,
+        mp_status: orderData.mpStatus || null,
         notes: orderData.notes
       };
 
@@ -190,6 +193,89 @@ export const orderService = {
       .single();
 
     if (error) throw error;
+    return data;
+  },
+
+  // Actualizar preference_id de Mercado Pago
+  async updateMercadoPagoPreference(orderId, preferenceId) {
+    const client = ensureAdminClient();
+    const { data, error } = await client
+      .from('orders')
+      .update({
+        mp_preference_id: preferenceId,
+        payment_method: 'mercadopago'
+      })
+      .eq('id', orderId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Actualizar pago Mercado Pago (payment id + status crudo)
+  async updateMercadoPagoPayment(orderId, { paymentId, mpStatus }) {
+    const client = ensureAdminClient();
+    const updateData = {};
+    if (paymentId != null) updateData.mp_payment_id = String(paymentId);
+    if (mpStatus != null) updateData.mp_status = mpStatus;
+
+    const { data, error } = await client
+      .from('orders')
+      .update(updateData)
+      .eq('id', orderId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Buscar orden por preference_id de Mercado Pago
+  async findByMercadoPagoPreferenceId(preferenceId) {
+    const client = ensureAdminClient();
+    const { data, error } = await client
+      .from('orders')
+      .select(`
+        *,
+        users:user_id (id, email, name),
+        order_items (
+          id,
+          product_id,
+          product_name,
+          quantity,
+          price,
+          subtotal
+        )
+      `)
+      .eq('mp_preference_id', preferenceId)
+      .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  },
+
+  // Buscar orden por payment_id de Mercado Pago
+  async findByMercadoPagoPaymentId(paymentId) {
+    const client = ensureAdminClient();
+    const { data, error } = await client
+      .from('orders')
+      .select(`
+        *,
+        users:user_id (id, email, name),
+        order_items (
+          id,
+          product_id,
+          product_name,
+          quantity,
+          price,
+          subtotal
+        )
+      `)
+      .eq('mp_payment_id', String(paymentId))
+      .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') throw error;
     return data;
   },
 

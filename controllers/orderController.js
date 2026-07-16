@@ -28,6 +28,7 @@ import {
  * @param {number} [pricing.alto]
  * @param {number} [pricing.ancho]
  * @param {number} [pricing.largo]
+ * @param {string} [pricing.paymentMethod] - 'webpay' | 'mercadopago'
  */
 export const createOrderFromCart = async (userId, shippingAddress, notes = null, pricing = {}) => {
   // Validate shipping address
@@ -105,7 +106,7 @@ export const createOrderFromCart = async (userId, shippingAddress, notes = null,
       shippingAmount,
       starkenCodigoCiudadDestino,
       shippingAddress,
-      paymentMethod: 'webpay',
+      paymentMethod: pricing.paymentMethod || 'webpay',
       paymentStatus: 'pending',
       status: 'pending',
       notes

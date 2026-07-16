@@ -417,12 +417,8 @@
  *   post:
  *     summary: Anular pago (Reembolso)
  *     description: |
- *       Anula una transacción y procesa un reembolso a través de Transbank.
- *       Solo se puede anular una transacción que haya sido autorizada.
- *       
- *       **Tipos de anulación:**
- *       - **Anulación total**: Se anula el monto completo de la transacción
- *       - **Anulación parcial**: Se anula solo una parte del monto (especificar en el body)
+ *       Anula una transacción y procesa un reembolso a través de Transbank o Mercado Pago
+ *       según el `payment_method` de la orden.
  *     tags: [Payments, Admin]
  *     security:
  *       - bearerAuth: []
@@ -449,34 +445,35 @@
  *               $ref: '#/components/schemas/RefundPaymentResponse'
  *       400:
  *         description: Error de validación o transacción no anulable
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Esta orden no tiene una transacción de Transbank"
  *       404:
  *         description: Orden no encontrada
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Orden no encontrada"
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       500:
  *         description: Error interno del servidor
+ */
+
+/**
+ * @swagger
+ * /api/payments/mercadopago/initiate:
+ *   post:
+ *     summary: Iniciar pago con Mercado Pago (Checkout Pro)
+ *     description: |
+ *       Crea la orden desde el carrito y una preferencia de Checkout Pro en el backend.
+ *       El cliente solo recibe `preferenceId` + `initPoint` para redirigir al usuario.
+ *       Nunca se crea el `preference_id` en el frontend.
+ *     tags: [Payments, MercadoPago]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/InitiatePaymentRequest'
+ *     responses:
+ *       200:
+ *         description: Preferencia creada
  *         content:
  *           application/json:
  *             schema:
@@ -484,10 +481,101 @@
  *               properties:
  *                 success:
  *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Error al anular el pago: Error de conexión con Transbank"
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     orderId:
+ *                       type: string
+ *                     orderNumber:
+ *                       type: string
+ *                     amount:
+ *                       type: number
+ *                     preferenceId:
+ *                       type: string
+ *                       example: "123456789-abcdef"
+ *                     initPoint:
+ *                       type: string
+ *                       description: URL de redirección a Mercado Pago
+ *                     environment:
+ *                       type: string
+ *                       enum: [sandbox, production]
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       503:
+ *         description: Mercado Pago o envío no configurados
+ */
+
+/**
+ * @swagger
+ * /api/payments/mercadopago/webhook:
+ *   post:
+ *     summary: Webhook / IPN de Mercado Pago
+ *     description: |
+ *       Recibe notificaciones de pago. Valida `x-signature` cuando está configurado
+ *       `MERCADOPAGO_WEBHOOK_SECRET`. Consulta el pago en la API y actualiza la orden.
+ *       Endpoint público (sin JWT).
+ *     tags: [Payments, MercadoPago]
+ *     parameters:
+ *       - in: query
+ *         name: data.id
+ *         schema:
+ *           type: string
+ *         description: ID del recurso (pago) notificado
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *         description: Tipo de notificación (payment)
+ *       - in: query
+ *         name: topic
+ *         schema:
+ *           type: string
+ *         description: Topic IPN legacy (payment)
+ *     responses:
+ *       200:
+ *         description: Notificación aceptada
+ *       401:
+ *         description: Firma inválida
+ *       500:
+ *         description: Error interno (MP reintentará)
+ *   get:
+ *     summary: Ping / validación de URL de webhook
+ *     tags: [Payments, MercadoPago]
+ *     responses:
+ *       200:
+ *         description: OK
+ */
+
+/**
+ * @swagger
+ * /api/payments/mercadopago/confirm:
+ *   post:
+ *     summary: Confirmar / sincronizar pago Mercado Pago (retorno browser)
+ *     description: |
+ *       Usado tras `back_urls` para que el frontend consulte el estado.
+ *       La fuente de verdad del estado final es el webhook.
+ *     tags: [Payments, MercadoPago]
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               payment_id:
+ *                 type: string
+ *               preference_id:
+ *                 type: string
+ *               order_id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Estado sincronizado
+ *       400:
+ *         description: Faltan identificadores
+ *       404:
+ *         description: Orden no encontrada
  */
 
 

@@ -165,7 +165,7 @@ describe('paymentController', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: 'Esta orden no tiene una transacción de Transbank.'
+        error: 'Esta orden no tiene una transacción de Transbank ni de Mercado Pago.'
       })
     );
     expect(mockTransbankService.refundTransaction).not.toHaveBeenCalled();
